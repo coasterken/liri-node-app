@@ -30,6 +30,9 @@ var command = process.argv[2];
 var inputData = process.argv[3];
 var allArgs = process.argv;
 
+//check for all the options and call appropriate function
+allArgs.splice(0, 2);
+
 switch (command) {
   case "my-tweets":
 
@@ -55,6 +58,7 @@ switch (command) {
     console.log("Sorry - but I do not understand your command");
 }
 
+//Process tweets
 function processTweets() {
 
   twitbot.get('statuses/user_timeline', {
@@ -70,6 +74,7 @@ function processTweets() {
   });
 }
 
+//output tweets
 function outputTweets(tweets) {
 
   for (var i = 0; i < tweets.length; i++) {
@@ -78,17 +83,25 @@ function outputTweets(tweets) {
   }
 }
 
+//process spotify request
 function processSpotify() {
 
-  var mySong = "The Sign";
-
+  var mySong = "";
   if (inputData) {
-    mySong = inputData;
+    for (var i = 1; i < allArgs.length; i++) {
+      if (i > 1 && i < allArgs.length) {
+        mySong = mySong + " " + allArgs[i];
+      } else {
+        mySong += allArgs[i]; //i = 1
+      }
+    }
+  } else {
+    mySong = "The Sign";
   }
 
   spotbot.search({
     type: 'track',
-    query: '"' + mySong.split(" ").join("+") + '"',
+    query: mySong,
     limit: '10'
   }, function (error, data) {
 
@@ -97,10 +110,10 @@ function processSpotify() {
     } else {
       console.log("Spotify had a problem. Error: " + error);
     }
-
-  });
+  })
 }
 
+//output spotify data
 function outputSpotify(data, inputSong) {
   var itemCount = 1;
   var dataArray = data.tracks.items;
@@ -132,13 +145,14 @@ function outputSpotify(data, inputSong) {
   }
 }
 
+//process and output movie requests
 function processMovie() {
 
   var myMovie = "";
 
   if (inputData) {
-    for (var i = 3; i < allArgs.length; i++) {
-      if (i > 3 && i < allArgs.length) {
+    for (var i = 1; i < allArgs.length; i++) {
+      if (i > 1 && i < allArgs.length) {
         myMovie = myMovie + "+" + allArgs[i];
       } else {
         myMovie += allArgs[i];
@@ -180,10 +194,10 @@ function processMovie() {
     } else {
       console.log("Movie Error: " + error);
     }
-
   })
 }
 
+//process random text file with request
 function processRandomTxt() {
 
   fs.readFile("random.txt", "utf8", function (error, data) {
@@ -193,10 +207,15 @@ function processRandomTxt() {
     } else {
 
       var dataArr = data.split(",");
-      if (dataArr.length === 2) {
+      if (dataArr.length > 0) {
         var key = dataArr[0];
-        var inputData = dataArr[1];
-
+        allArgs = [];
+        allArgs.push(key);
+        if (dataArr.length > 1) {
+          inputData = JSON.parse(dataArr[1]);
+          allArgs.push(inputData);
+        }
+        // console.log(inputData)
         switch (key) {
           case "my-tweets":
             processTweets();
